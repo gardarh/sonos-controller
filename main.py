@@ -41,6 +41,14 @@ def speaker_set_volume(args: argparse.Namespace) -> None:
         print(f"Speaker not found: {args.speaker_name}")
 
 
+def speaker_play_uri(args: argparse.Namespace) -> None:
+    title = getattr(args, "title", "") or ""
+    if sonos.play_uri(args.speaker_name, args.uri, title):
+        print(f"Playing {title or args.uri} on {args.speaker_name}")
+    else:
+        print(f"Speaker not found: {args.speaker_name}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Sonos Controller")
     subparsers = parser.add_subparsers(dest="action", required=True)
@@ -87,6 +95,11 @@ def main() -> None:
         help="Volume level (0-100)",
     )
     set_volume_parser.set_defaults(func=speaker_set_volume)
+
+    play_uri_parser = speaker_subparsers.add_parser("play-uri", help="Play a URI")
+    play_uri_parser.add_argument("uri", help="URI to play")
+    play_uri_parser.add_argument("--title", help="Title for the stream", default="")
+    play_uri_parser.set_defaults(func=speaker_play_uri)
 
     args = parser.parse_args()
     args.func(args)

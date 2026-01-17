@@ -82,3 +82,11 @@ def set_volume(speaker_name: str, volume: int) -> bool:
         return False
     speaker.volume = volume
     return True
+
+
+def play_uri(speaker_name: str, uri: str, title: str = "") -> bool:
+    speaker = get_speaker_by_name(speaker_name)
+    if not speaker:
+        return False
+    speaker.play_uri(uri, title=title)
+    return True

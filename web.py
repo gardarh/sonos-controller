@@ -41,6 +41,11 @@ def index() -> Response:
                     "path": "/speakers/<speaker_name>/volume",
                     "description": 'Set speaker volume (body: {"volume": 0-100})',
                 },
+                {
+                    "method": "POST",
+                    "path": "/speakers/<speaker_name>/play-uri",
+                    "description": 'Play URI (body: {"uri": "...", "title": "..."})',
+                },
             ],
         }
     )
@@ -116,6 +121,24 @@ def set_volume(speaker_name: str) -> Response | tuple[Response, int]:
     if sonos.set_volume(speaker_name, volume):
         return jsonify(
             {"status": "ok", "message": f"Set {speaker_name} volume to {volume}"}
+        )
+    return jsonify(
+        {"status": "error", "message": f"Speaker not found: {speaker_name}"}
+    ), 404
+
+
+@app.post("/speakers/<speaker_name>/play-uri")
+def play_uri(speaker_name: str) -> Response | tuple[Response, int]:
+    data = request.get_json()
+    if not data or "uri" not in data:
+        return jsonify(
+            {"status": "error", "message": "Missing 'uri' in request body"}
+        ), 400
+    uri = data["uri"]
+    title = data.get("title", "")
+    if sonos.play_uri(speaker_name, uri, title):
+        return jsonify(
+            {"status": "ok", "message": f"Playing {title or uri} on {speaker_name}"}
         )
     return jsonify(
         {"status": "error", "message": f"Speaker not found: {speaker_name}"}
