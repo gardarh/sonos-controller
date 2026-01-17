@@ -52,9 +52,7 @@ def main() -> None:
     list_speakers_parser.set_defaults(func=list_speakers)
 
     # speaker action
-    speaker_parser = subparsers.add_parser(
-        "speaker", help="Control a specific speaker"
-    )
+    speaker_parser = subparsers.add_parser("speaker", help="Control a specific speaker")
     speaker_parser.add_argument(
         "--speaker-name", required=True, help="Name of the speaker to control"
     )
@@ -82,8 +80,11 @@ def main() -> None:
         "set-volume", help="Set speaker volume"
     )
     set_volume_parser.add_argument(
-        "volume", type=int, choices=range(0, 101), metavar="0-100",
-        help="Volume level (0-100)"
+        "volume",
+        type=int,
+        choices=range(0, 101),
+        metavar="0-100",
+        help="Volume level (0-100)",
     )
     set_volume_parser.set_defaults(func=speaker_set_volume)
 
