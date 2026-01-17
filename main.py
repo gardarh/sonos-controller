@@ -1,64 +1,47 @@
 import argparse
 
-import soco
+import sonos
 
 
-def list_speakers(args):
-    speakers = soco.discover()
+def list_speakers(args: argparse.Namespace) -> None:
+    speakers = sonos.discover_speakers()
     if not speakers:
         print("No speakers found")
         return
     for speaker in speakers:
-        print(f"{speaker.player_name} - {speaker.ip_address}")
+        print(f"{speaker['name']} - {speaker['ip']}")
 
 
-def get_speaker_by_name(name):
-    speakers = soco.discover()
-    if not speakers:
-        return None
-    for speaker in speakers:
-        if speaker.player_name == name:
-            return speaker
-    return None
-
-
-def speaker_play(args):
-    speaker = get_speaker_by_name(args.speaker_name)
-    if not speaker:
+def speaker_play(args: argparse.Namespace) -> None:
+    if sonos.play(args.speaker_name):
+        print(f"Playing on speaker: {args.speaker_name}")
+    else:
         print(f"Speaker not found: {args.speaker_name}")
-        return
-    speaker.play()
-    print(f"Playing on speaker: {args.speaker_name}")
 
 
-def speaker_pause(args):
-    speaker = get_speaker_by_name(args.speaker_name)
-    if not speaker:
+def speaker_pause(args: argparse.Namespace) -> None:
+    if sonos.pause(args.speaker_name):
+        print(f"Paused speaker: {args.speaker_name}")
+    else:
         print(f"Speaker not found: {args.speaker_name}")
-        return
-    speaker.pause()
-    print(f"Paused speaker: {args.speaker_name}")
 
 
-def speaker_set_to_line_in(args):
-    speaker = get_speaker_by_name(args.speaker_name)
-    if not speaker:
+def speaker_set_source(args: argparse.Namespace) -> None:
+    success, error = sonos.set_source(args.speaker_name, args.source)
+    if success:
+        print(f"Set {args.speaker_name} source to {args.source}")
+    else:
+        print(error)
+
+
+def speaker_set_volume(args: argparse.Namespace) -> None:
+    if sonos.set_volume(args.speaker_name, args.volume):
+        print(f"Set {args.speaker_name} volume to {args.volume}")
+    else:
         print(f"Speaker not found: {args.speaker_name}")
-        return
-    speaker.switch_to_line_in()
-    print(f"Switched {args.speaker_name} to line-in")
 
 
-def speaker_set_volume(args):
-    speaker = get_speaker_by_name(args.speaker_name)
-    if not speaker:
-        print(f"Speaker not found: {args.speaker_name}")
-        return
-    speaker.volume = args.volume
-    print(f"Set {args.speaker_name} volume to {args.volume}")
-
-
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Sonos Controller")
     subparsers = parser.add_subparsers(dest="action", required=True)
 
@@ -87,10 +70,13 @@ def main():
     pause_parser = speaker_subparsers.add_parser("pause", help="Pause the speaker")
     pause_parser.set_defaults(func=speaker_pause)
 
-    set_to_line_in_parser = speaker_subparsers.add_parser(
-        "set-to-line-in", help="Switch speaker to its line-in input"
+    set_source_parser = speaker_subparsers.add_parser(
+        "set-source", help="Set speaker source"
     )
-    set_to_line_in_parser.set_defaults(func=speaker_set_to_line_in)
+    set_source_parser.add_argument(
+        "source", choices=["line-in", "music"], help="Source to set"
+    )
+    set_source_parser.set_defaults(func=speaker_set_source)
 
     set_volume_parser = speaker_subparsers.add_parser(
         "set-volume", help="Set speaker volume"
